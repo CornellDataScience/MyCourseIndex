@@ -171,10 +171,20 @@ def simplify_thread_info(thread: dict) -> dict:
         dict: Simplified thread with the useful info.
     """
 
-    # We define a simple helper function here, to recurse through the entire 
-    # post "tree" structure and apply any post-changing functions to the post.
-    # Very helpful for dealing with nested answers and comments of a thread.
-    def recurse_on_post(f, post: dict, **kwargs):
+    def recurse_on_post(f, post: dict, **kwargs) -> dict:
+        """
+        We define a simple helper function here, to recurse through the entire 
+        post "tree" structure and apply any post-changing functions to the post.
+        Very helpful for dealing with nested answers and comments of a thread.
+
+        Args:
+            f (dict -> dict): Function to be applied to the post.
+            post (dict): JSON-styled dict representing any general post.
+            **kwargs (Any): Named arguments to pass to the function f.
+
+        Returns:
+            post: The updated post after processing with f(post, **kwargs)
+        """
         post = f(post, **kwargs)
 
         if "answers" in post:
@@ -193,12 +203,28 @@ def simplify_thread_info(thread: dict) -> dict:
 
         return post
 
-    # Slice a subset of the original post contents with the keys we want.
     def simplify_post(post: dict, keys: set) -> dict:
+        """Slice a subset of the original post contents with the keys we want.
+
+        Args:
+            post (dict): JSON-styled dict representing any general post.
+            keys (set): A set of keys to include in the new post.
+
+        Returns:
+            dict: The new post with select keys.
+        """
         return {x: post[x] for x in post if x in keys}
 
-    # Exchange meaningless numbers with actual names of people.
     def map_ids_to_names(post: dict, users: list) -> dict:
+        """Exchange meaningless numbers with actual names of people.
+
+        Args:
+            post (dict): JSON-styled dict representing any general post.
+            users (list): JSON-styled list of user objects, each with a name.
+
+        Returns:
+            dict: The new post with user ids changed to names.
+        """
         user_id = post["user_id"]
         for user in users:
             if user["id"] == user_id:
@@ -209,10 +235,18 @@ def simplify_thread_info(thread: dict) -> dict:
 
         return post
     
-    # Get rid of ugly HTML tags in our post content.
+
     def strip_html(post: dict) -> dict:
-        import re
-        new_content = re.sub('<[^<]+?>', '', post["content"])
+        """Get rid of ugly HTML tags in our post content.
+
+        Args:
+            post (dict): JSON-styled dict of a post with content to filter.
+
+        Returns:
+            dict: The new post without any HTML in the content parameter.
+        """
+        from re import sub
+        new_content = sub('<[^<]+?>', '', post["content"])
         post["content"] = new_content
         return post
 
